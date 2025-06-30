@@ -7,3 +7,4 @@ archive/
 sandbox/
 .venv/
 .DS_Store
+test.py
