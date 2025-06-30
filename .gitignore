@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 diction/*.json
 !diction/slm_*.json
+.env
+archive/
+sandbox/
+.venv/
+.DS_Store
