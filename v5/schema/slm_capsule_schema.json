@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "total_size_bytes": 32,
+  "header": {
+    "size_bytes": 2,
+    "fields": {
+      "version": {
+        "bits": 4,
+        "description": "Schema version"
+      },
+      "clause_a_mask": {
+        "bits": 4,
+        "description": "Slot presence bitmask for Clause A"
+      },
+      "clause_b_mask": {
+        "bits": 4,
+        "description": "Slot presence bitmask for Clause B"
+      },
+      "context": {
+        "bits": 4,
+        "description": "Domain, priority, or other context"
+      }
+    }
+  },
+  "clause": {
+    "size_bytes": 14,
+    "slots": {
+      "subject": {
+        "bits": 10,
+        "max_values": 1024
+      },
+      "verb": {
+        "bits": 14,
+        "max_values": 16384
+      },
+      "object": {
+        "bits": 14,
+        "max_values": 16384
+      },
+      "modifier": {
+        "bits": 10,
+        "max_values": 1024
+      },
+      "location": {
+        "bits": 10,
+        "max_values": 1024
+      },
+      "intent": {
+        "bits": 12,
+        "max_values": 4096
+      },
+      "cause": {
+        "bits": 12,
+        "max_values": 4096
+      },
+      "status": {
+        "bits": 10,
+        "max_values": 1024
+      },
+      "adverb": {
+        "bits": 10,
+        "max_values": 1024
+      }
+    }
+  },
+  "footer": {
+    "size_bytes": 2,
+    "fields": {
+      "checksum": {
+        "bits": 16,
+        "description": "Optional CRC, signature, or chain tag"
+      }
+    }
+  }
+}
