@@ -2,7 +2,7 @@ import re
 import difflib
 
 def normalize_tokens(raw_text, valid_words, cutoff=0.85):
-    tokens = re.findall(r"\b\w+\b", raw_text.lower())
+    tokens = re.findall(r"\b[a-zA-Z0-9\-]+\b", raw_text.lower())
     cleaned = []
 
     for token in tokens:

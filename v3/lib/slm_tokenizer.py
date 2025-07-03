@@ -19,9 +19,22 @@ for fname in os.listdir(DICT_DIR):
 
 # Optional priority if collisions: check verbs before objects, etc
 SLOT_PRIORITY = [
-    "verbs", "objects", "subjects", "adjectives", "adverbs",
-    "sizes", "materials", "shapes", "colors", "conditions",
-    "purposes", "prepositions", "statuses", "causes", "intents", "spaces"
+    "verbs",
+    "objects",
+    "subjects",
+    "causes",        # 🛠 move up
+    "statuses",      # 🛠 move up
+    "intents",       # 🛠 move up
+    "materials",
+    "sizes",
+    "shapes",
+    "conditions",
+    "colors",
+    "purposes",
+    "prepositions",
+    "adjectives",
+    "adverbs",
+    "spaces"
 ]
 
 # Normalize dict names to encoder slot names
@@ -51,29 +64,42 @@ for d in slot_dicts.values():
 
 def match_slots(raw_text):
     raw_tokens = raw_text.lower().replace('-', ' ').split()
-    tokens = normalize_tokens(raw_text, ALL_KNOWN_TERMS)  # use normalizer first
+    
+    # Clean and normalize tokens
+    tokens = normalize_tokens(raw_text, ALL_KNOWN_TERMS)
+    tokens = [t.strip("()[]{}.,:;!?") for t in tokens]
 
     matched = {}
+    used_tokens = set()
+
+    # First pass: match by slot priority
     for token in tokens:
         for dict_name in SLOT_PRIORITY:
             if token in slot_dicts.get(dict_name, {}):
                 slot_name = DICT_SLOT_MAP[dict_name]
                 if slot_name not in matched:
                     matched[slot_name] = token
-                else:
-                    # 🧠 Secondary fallback matchesinstal
-                    if slot_name == "object":
-                        if "cause" not in matched and token in slot_dicts.get("causes", {}):
-                            matched["cause"] = token
-                        elif "intent" not in matched and token in slot_dicts.get("intents", {}):
-                            matched["intent"] = token
-                    elif slot_name == "status":
-                        if "adjective" not in matched and token in slot_dicts.get("adjectives", {}):
-                            matched["adjective"] = token
-                    elif slot_name == "verb":
-                        if "intent" not in matched and token in slot_dicts.get("intents", {}):
-                            matched["intent"] = token
+                    used_tokens.add(token)
+                    break
+
+    # Second pass: fill in remaining slots with unused tokens
+    for token in tokens:
+        if token in used_tokens:
+            continue
+        for dict_name in SLOT_PRIORITY:
+            slot_name = DICT_SLOT_MAP[dict_name]
+            if slot_name in matched:
+                continue
+            if token in slot_dicts.get(dict_name, {}):
+                # Example override: prefer 'cause' over 'color' if possible
+                if slot_name == "color" and token in slot_dicts.get("causes", {}) and "cause" not in matched:
+                    matched["cause"] = token
+                    used_tokens.add(token)
+                    break
+                matched[slot_name] = token
+                used_tokens.add(token)
                 break
+
     return matched
 
 

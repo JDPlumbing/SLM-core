@@ -1,0 +1,3 @@
+#!/bin/bash
+python3 slm_cli.py
+#chmod +x slm

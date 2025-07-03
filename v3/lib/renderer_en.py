@@ -42,7 +42,7 @@ def render_english(slot_dict):
 
     cause = slot_dict.get("cause")
     if cause and not cause.startswith("<"):
-        tail_parts.append(f"because {cause}")
+        tail_parts.append(f"due to {cause}")
 
     intent = slot_dict.get("intent")
     if intent and not intent.startswith("<"):
