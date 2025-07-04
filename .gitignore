@@ -9,3 +9,6 @@ sandbox/
 .DS_Store
 test.py
 supabase/
+v4_backup/
+node_modules/
+archive/
