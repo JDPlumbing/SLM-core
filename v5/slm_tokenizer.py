@@ -3,7 +3,7 @@ import os
 DICT_PATH = "dicts"
 SLOTS = ["subject", "verb", "object", "modifier", "location", "intent", "cause", "status", "adverb"]
 
-CLAUSE_JOINERS = {"so", "that", "then", "because"}
+CLAUSE_JOINERS = {"so", "that", "then", "because", "and", "but"}
 LOCATION_PREPOSITIONS = {"in", "on", "under", "at"}
 
 def get_entries_by_slot():
@@ -38,6 +38,7 @@ def tokenize(text):
     while i < len(words):
         token = words[i]
         next_token = words[i + 1] if i + 1 < len(words) else None
+        third_token = words[i + 2] if i + 2 < len(words) else None
         pair = f"{token}_{next_token}" if next_token else None
 
         # Clause boundary check
@@ -46,42 +47,67 @@ def tokenize(text):
             i += 1
             continue
 
-        # Location detection: preposition + known location noun
-        if token in LOCATION_PREPOSITIONS and next_token in slots["location"]:
-            assign(clause, "location", next_token)
-            i += 2
-            continue
-
-        # Subject early-catch: pronoun or dict match
-        if clause["subject"] is None:
-            if token in {"i", "he", "she", "they", "we", "you"} or token in slots["subject"]:
-                assign(clause, "subject", token)
-                i += 1
+        # Location detection: preposition + article + noun (e.g. in the basement)
+        if token in LOCATION_PREPOSITIONS and next_token and third_token:
+            composite = f"{next_token}_{third_token}"  # e.g. the_basement
+            if composite in slots["location"]:
+                assign(clause, "location", composite)
+                i += 3
                 continue
 
-        # Try 2-word pair first (e.g. he_is, is_running)
+        # Try 2-word pair first
         if pair:
+            matched = False
             for slot in SLOTS:
                 if pair in slots[slot]:
                     if assign(clause, slot, pair):
                         i += 2
+                        matched = True
                         break
-            else:
-                # No match for pair, try single
-                matched = False
-                for slot in SLOTS:
-                    if token in slots[slot]:
-                        if assign(clause, slot, token):
-                            matched = True
-                            break
-                if not matched:
-                    i += 1
-        else:
-            # Final word, try single match
-            for slot in SLOTS:
-                if token in slots[slot]:
-                    assign(clause, slot, token)
+            if matched:
+                continue
+
+        # Try single token
+        matched = False
+        for slot in SLOTS:
+            if token in slots[slot]:
+                if assign(clause, slot, token):
+                    matched = True
                     break
+
+        # Fallback: modifier followed by object
+        if matched and token in slots["modifier"] and next_token in slots["object"]:
+            assign(clause, "object", next_token)
             i += 1
+            continue
+
+        # Fallback: someone_verb
+        if not matched and clause["verb"] is None:
+            if f"someone_{token}" in slots["verb"]:
+                assign(clause, "verb", f"someone_{token}")
+
+        i += 1
+
+    # Final fallback: default subject
+    if clause_a["subject"] is None and clause_a["verb"]:
+        clause_a["subject"] = "someone"
+    if clause_b["subject"] is None and clause_b["verb"]:
+        clause_b["subject"] = "someone"
+
+    # Final pass: sliding window for object resolution like "the loose valve"
+    print("🧪 Sliding window object check:")
+    for i in range(len(words)):
+        if clause["object"] is not None:
+            break
+        if words[i] in {"the", "a", "an"}:
+            for j in range(i + 1, min(i + 4, len(words))):
+                candidate = f"{words[i]}_{words[j]}"
+                print(f"  🔍 Checking: {candidate}")
+                if candidate in slots["object"]:
+                    print(f"  ✅ Matched object: {candidate}")
+                    clause["object"] = candidate
+                    break
+            if clause["object"]:
+                break
 
     return clause_a, clause_b

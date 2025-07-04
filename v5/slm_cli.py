@@ -1,4 +1,6 @@
 from slm_tokenizer import tokenize
+from slm_renderer import render_clauses  # ✅ Use patched renderer
+
 
 def pretty_print_clause(label, clause):
     print(f"\n📦 {label}:")
@@ -7,9 +9,7 @@ def pretty_print_clause(label, clause):
         print(f'  "{k}": {repr(v)},')
     print("}")
 
-def render_clause(clause):
-    return " ".join(v.replace("_", " ") for v in clause.values() if v)
-
+    
 if __name__ == "__main__":
     print("🧠 SLM CLI v5")
     print("Type a sentence to encode and parse it.")
@@ -32,8 +32,8 @@ if __name__ == "__main__":
             pretty_print_clause("Clause A", clause_a)
             pretty_print_clause("Clause B", clause_b)
 
-            combined = f"{render_clause(clause_a)}. {render_clause(clause_b)}"
-            print(f"\n🧾 Interpreted:\n{combined}")
+            rendered = render_clauses(clause_a, clause_b)
+            print(f"\n🧾 Interpreted:\n{rendered}")
             print("-" * 40)
 
         except KeyboardInterrupt:
